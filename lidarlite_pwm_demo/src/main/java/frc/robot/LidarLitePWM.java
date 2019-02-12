@@ -32,8 +32,9 @@ public LidarLitePWM (DigitalSource source) {
 	// In either case, call getPeriod() to obtain the length of the last measured 
 	// pulse (in seconds).
     // Configure for measuring rising to falling pulses
-    counter.setSemiPeriodMode(true);
-    counter.reset();
+	counter.setSemiPeriodMode(true);
+	counter.setSamplesToAverage(100);
+	counter.reset();
 }
 
 /**
