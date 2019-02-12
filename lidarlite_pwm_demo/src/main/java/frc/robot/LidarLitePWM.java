@@ -22,8 +22,15 @@ private int printedWarningCount = 5;
  * @param source The DigitalInput or DigitalSource where the LIDAR-Lite is attached (ex: new DigitalInput(9))
  */
 public LidarLitePWM (DigitalSource source) {
-	counter = new Counter(source);
-    counter.setMaxPeriod(1.0);
+	counter = new Counter(source);	
+	counter.setMaxPeriod(1.0);
+	
+	// The semi-period mode of the counter will measure the pulse width of either 
+	// a high pulse (rising edge to falling edge) or a low pulse (falling edge to 
+	// rising edge) on a single source (the Up Source). Call setSemiPeriodMode(true) 
+	// to measure high pulses and setSemiPeriodMode(false) to measure low pulses. 
+	// In either case, call getPeriod() to obtain the length of the last measured 
+	// pulse (in seconds).
     // Configure for measuring rising to falling pulses
     counter.setSemiPeriodMode(true);
     counter.reset();
@@ -46,9 +53,10 @@ public double getDistancePWM() {
 		}
 		return 0;
 	}
-	/* getPeriod returns time in seconds. The hardware resolution is microseconds.
-	 * The LIDAR-Lite unit sends a high signal for 10 microseconds per cm of distance.
-	 */
+
+	// getPeriod() returns length of the last measured pulse (in seconds).
+	// The hardware resolution is microseconds. The LIDAR-Lite unit sends a 
+	// high signal for 10 microseconds per cm of distance.
 	cm = (counter.getPeriod() * 1000000.0 / 10.0) + CALIBRATION_OFFSET;
 	return cm;
 }
