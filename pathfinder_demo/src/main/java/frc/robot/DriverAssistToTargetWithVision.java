@@ -37,20 +37,49 @@ public class DriverAssistToTargetWithVision {
         double x = distanceToTarget * Math.sin(angleToTargetRad);
         double y = distanceToTarget * Math.cos(angleToTargetRad);
 
-        double angleRelativetoFieldRad = Pathfinder.d2r(15);
-        double angleToTurnRad = 0.0;
+        double angleRelativetoField = 15;
+        
+        double finalAngleRelativetoField = 0.0;
 
-        boolean rocketSides = false;
+        boolean driverAssistCargo = false;
+        boolean driverAssistRocket = false;
 
-        if (rocketSides == true) {
-            angleToTurnRad = (Pathfinder.d2r(45)) - (angleRelativetoFieldRad); //figure out the right angle the rocket side is at
-        } else {
-            angleToTurnRad = (Pathfinder.d2r(90)) - (angleRelativetoFieldRad);
+        if (driverAssistCargo == true) {
+            
+            if ((angleRelativetoField >= 0.0 && angleRelativetoField <= 45.0) || (angleRelativetoField >= 315.0 && angleRelativetoField <= 360.0)) {
+                finalAngleRelativetoField = 0.0;
+            } else if (angleRelativetoField >= 45.0 && angleRelativetoField <= 135.0) {
+                finalAngleRelativetoField = 90.0;
+            } else if (angleRelativetoField >= 135.0 && angleRelativetoField <= 225.0) {
+                finalAngleRelativetoField = 180.0;
+            } 
+            
         }
+        else if (driverAssistRocket ==true) {
+
+            if (angleRelativetoField >= 90.0 && angleRelativetoField <= 150.0) {
+                finalAngleRelativetoField = 120.0;
+            } else if (angleRelativetoField >= 150.0 && angleRelativetoField <= 210.0) {
+                finalAngleRelativetoField = 180.0;
+            } else if (angleRelativetoField >= 210.0 && angleRelativetoField <= 270.0) {
+                finalAngleRelativetoField = 240.0;
+            } 
+            
+            else if (angleRelativetoField >= 30.0 && angleRelativetoField <= 90.0) {
+                finalAngleRelativetoField = 60.0;
+            } else if ((angleRelativetoField >= 0.0 && angleRelativetoField <= 30.0) || (angleRelativetoField >= 330.0 && angleRelativetoField <= 360.0)) {
+                finalAngleRelativetoField = 0.0;
+            } else if (angleRelativetoField >= 270.0 && angleRelativetoField <= 330.0) {
+                finalAngleRelativetoField = 300.0;
+            }
+        }
+
+        double angleToTurnRelativetoRobot = finalAngleRelativetoField - angleRelativetoField;
+
 
         System.out.println("RCVI: x: " + x);
         System.out.println("RCVI: y: " + y);
-        System.out.println("RCVI: angleToTurnRad: " + angleToTurnRad);
+        System.out.println("RCVI: angleToTurnRelativetoRobot: " + angleToTurnRelativetoRobot);
 
         Trajectory.Config config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, Trajectory.Config.SAMPLES_HIGH, 0.05, 1.7, 2.0, 60.0);
         
@@ -60,7 +89,7 @@ public class DriverAssistToTargetWithVision {
                 new Waypoint(0, 0, 0),
 
                 // Final position/heading in front of target
-                new Waypoint(x,y,angleToTurnRad),
+                new Waypoint(x,y,angleToTurnRelativetoRobot),
         };
 
         Trajectory traj = Pathfinder.generate(points, config);
