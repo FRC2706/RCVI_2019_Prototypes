@@ -37,7 +37,7 @@ public class DriverAssistToTargetWithVision {
         double x = distanceToTarget * Math.sin(angleToTargetRad);
         double y = distanceToTarget * Math.cos(angleToTargetRad);
 
-        double angleRelativetoField = 15;
+        double angleRelativetoField = 15; //take out hard code for pigeon imu function
         
         double finalAngleRelativetoField = 0.0;
 
@@ -86,7 +86,7 @@ public class DriverAssistToTargetWithVision {
         Waypoint[] points = new Waypoint[] {
 
                 // Initial position/heading
-                new Waypoint(0, 0, 0),
+                new Waypoint(0, 0, Pathfinder.d2r(90)),
 
                 // Final position/heading in front of target
                 new Waypoint(x,y,angleToTurnRelativetoRobot),
