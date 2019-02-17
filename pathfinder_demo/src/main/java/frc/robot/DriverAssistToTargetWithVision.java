@@ -33,18 +33,24 @@ public class DriverAssistToTargetWithVision {
         System.out.println("RCVI: distanceToTarget: " + distanceToTarget);
         System.out.println("RCVI: angleToTarget: " + angleToTarget);
 
-        double angleToTargetRad = Pathfinder.d2r(angleToTarget);
-        double x = distanceToTarget * Math.sin(angleToTargetRad);
-        double y = distanceToTarget * Math.cos(angleToTargetRad);
+        //vector to camera in robot frame
+        double vCamX_Robot = 0.33;
+        double vCamY_Robot = 0.5;
 
-        double angleRelativetoField = 15; //take out hard code for pigeon imu function
+        // vector to target in robot frame
+        double angleToTargetRad = Pathfinder.d2r(angleToTarget);
+        double vTargetX_Robot = distanceToTarget * Math.sin(angleToTargetRad);
+        double vTargetY_Robot  = distanceToTarget * Math.cos(angleToTargetRad);        
+        
+
+        double angleRelativetoField = 15; // take out hard code for pigeon imu function
         
         double finalAngleRelativetoField = 0.0;
 
         boolean driverAssistCargo = false;
         boolean driverAssistRocket = false;
 
-        if (driverAssistCargo == true) {
+        if (driverAssistCargo == true) { //give vEctOrS
             
             if ((angleRelativetoField >= 0.0 && angleRelativetoField <= 45.0) || (angleRelativetoField >= 315.0 && angleRelativetoField <= 360.0)) {
                 finalAngleRelativetoField = 0.0;
@@ -55,7 +61,7 @@ public class DriverAssistToTargetWithVision {
             } 
             
         }
-        else if (driverAssistRocket ==true) {
+        else if (driverAssistRocket == true) {
 
             if (angleRelativetoField >= 90.0 && angleRelativetoField <= 150.0) {
                 finalAngleRelativetoField = 120.0;
@@ -74,11 +80,36 @@ public class DriverAssistToTargetWithVision {
             }
         }
 
+        // unit vector
+        double finalAngleRelativetoFieldRad = Pathfinder.d2r(finalAngleRelativetoField); 
+        double uX_Field = Math.cos(finalAngleRelativetoFieldRad);
+        double uY_Field = Math.sin(finalAngleRelativetoFieldRad);
+     
+        // distance to stay away in feet -hard coded
+        double d = 0.5;
+       
+        // - [d Ux and d Uy]
+        double vOffsetX_Field = -d * uX_Field;
+        double vOffsetY_Field = -d * uY_Field;
+
+        // put from field frame into robot frame.
+        // angleRelativetoField is the pigeon IMU angle
+        double cosangleRelativetoField = Math.cos(angleRelativetoField);
+        double sinangleRelativetoField = Math.sin(angleRelativetoField);
+
+        double vOffsetX_Robot = vOffsetX_Field * cosangleRelativetoField + vOffsetY_Field * sinangleRelativetoField;
+        double vOffsetY_Robot = -vOffsetX_Field * sinangleRelativetoField + vOffsetY_Field * cosangleRelativetoField;
+
+        // final equation for adding all vectors
+        double vFinalX_Robot = vCamX_Robot + vTargetX_Robot + vOffsetX_Robot;
+        double vFinalY_Robot = vCamY_Robot + vTargetY_Robot + vOffsetY_Robot;
+
+
         double angleToTurnRelativetoRobot = finalAngleRelativetoField - angleRelativetoField;
 
 
-        System.out.println("RCVI: x: " + x);
-        System.out.println("RCVI: y: " + y);
+        System.out.println("RCVI: x: " + vFinalX_Robot);
+        System.out.println("RCVI: y: " + vFinalY_Robot);
         System.out.println("RCVI: angleToTurnRelativetoRobot: " + angleToTurnRelativetoRobot);
 
         Trajectory.Config config = new Trajectory.Config(Trajectory.FitMethod.HERMITE_CUBIC, Trajectory.Config.SAMPLES_HIGH, 0.05, 1.7, 2.0, 60.0);
@@ -89,7 +120,7 @@ public class DriverAssistToTargetWithVision {
                 new Waypoint(0, 0, Pathfinder.d2r(90)),
 
                 // Final position/heading in front of target
-                new Waypoint(x,y,angleToTurnRelativetoRobot),
+                new Waypoint(vFinalX_Robot,vFinalY_Robot,angleToTurnRelativetoRobot),
         };
 
         Trajectory traj = Pathfinder.generate(points, config);
